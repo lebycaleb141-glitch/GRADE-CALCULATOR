@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kenya Grade Calculator | CBC & KCSE</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        colors: {
+          kenya: {
+            black: '#000000',
+            red: '#BB0000',
+            green: '#006600',
+            white: '#FFFFFF',
+            gold: '#F4C430'
+          }
+        }
+      }
+    }
+  }
+</script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+  body { font-family: 'Inter', sans-serif; }
+  .gradient-bg {
+    background: linear-gradient(135deg, #006600 0%, #000000 50%, #BB0000 100%);
+  }
+  .card-hover { transition: all 0.3s ease; }
+  .card-hover:hover { transform: translateY(-4px); box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1); }
+  .grade-badge { font-weight: 700; letter-spacing: 0.5px; }
+  @media print {
+    .no-print { display: none !important; }
+    body { background: white !important; color: black !important; }
+    .print-only { display: block !important; }
+  }
+  .print-only { display: none; }
+</style>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300 min-h-screen">
+
+<!-- Navbar -->
+<nav class="gradient-bg text-white shadow-lg sticky top-0 z-50 no-print">
+  <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <div class="bg-white text-kenya-green p-2 rounded-full">
+        <i class="fas fa-graduation-cap text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-xl md:text-2xl font-bold">Kenya Grade Calculator</h1>
+        <p class="text-xs opacity-90">CBC / CBE & KCSE • 2026 Ready</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="toggleTheme()" class="bg-white/20 hover:bg-white/30 px-3 py-2 rounded-lg transition">
+        <i class="fas fa-moon dark:hidden"></i>
+        <i class="fas fa-sun hidden dark:inline"></i>
+      </button>
+      <button onclick="window.print()" class="bg-kenya-gold text-black px-4 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition">
+        <i class="fas fa-print mr-1"></i> Print
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="max-w-7xl mx-auto px-4 py-8">
+
+  <!-- Student Info Card -->
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8 card-hover">
+    <h2 class="text-xl font-bold mb-4 flex items-center gap-2">
+      <i class="fas fa-user-graduate text-kenya-green"></i> Student Details
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div>
+        <label class="block text-sm font-medium mb-1">Full Name</label>
+        <input type="text" id="studentName" placeholder="e.g. Jane Wanjiku" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-kenya-green outline-none">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">School / Institution</label>
+        <input type="text" id="schoolName" placeholder="e.g. Nairobi High School" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-kenya-green outline-none">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Admission / Index No.</label>
+        <input type="text" id="admNo" placeholder="Optional" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-kenya-green outline-none">
+      </div>
+      <div>
+        <label class="block text-sm font-medium mb-1">Year / Term</label>
+        <input type="text" id="yearTerm" placeholder="e.g. 2026 Term 2" class="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 focus:ring-2 focus:ring-kenya-green outline-none">
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="flex flex-wrap gap-2 mb-6 no-print">
+    <button onclick="switchTab('kcse')" id="tab-kcse" class="tab-btn px-6 py-3 rounded-xl font-semibold bg-kenya-green text-white shadow-md">
+      <i class="fas fa-certificate mr-2"></i>KCSE Calculator (8-4-4)
+    </button>
+    <button onclick="switchTab('cbc')" id="tab-cbc" class="tab-btn px-6 py-3 rounded-xl font-semibold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200">
+      <i class="fas fa-brain mr-2"></i>CBC / CBE Calculator
+    </button>
+  </div>
+
+  <!-- ==================== KCSE SECTION ==================== -->
+  <div id="kcse-section">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">KCSE Grade Calculator</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Traditional 12-point scale • Best 7 subjects (Math + 1 Language mandatory)</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="addKcseSubject()" class="bg-kenya-green hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition">
+            <i class="fas fa-plus mr-1"></i> Add Subject
+          </button>
+          <button onclick="clearKcse()" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 px-4 py-2 rounded-lg transition">
+            <i class="fas fa-trash mr-1"></i> Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="border-b dark:border-gray-700 text-sm text-gray-500">
+              <th class="pb-3 pr-4">Subject</th>
+              <th class="pb-3 pr-4">Marks (%)</th>
+              <th class="pb-3 pr-4">Grade</th>
+              <th class="pb-3 pr-4">Points</th>
+              <th class="pb-3">Action</th>
+            </tr>
+          </thead>
+          <tbody id="kcse-subjects">
+            <!-- Subjects injected by JS -->
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mt-6 flex flex-wrap gap-3">
+        <button onclick="calculateKcse()" class="bg-kenya-red hover:bg-red-700 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg transition">
+          <i class="fas fa-calculator mr-2"></i> Calculate Mean Grade
+        </button>
+        <button onclick="loadSampleKcse()" class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-6 py-3 rounded-xl transition">
+          Load Sample Data
+        </button>
+      </div>
+    </div>
+
+    <!-- KCSE Results -->
+    <div id="kcse-results" class="hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
+      <h3 class="text-xl font-bold mb-4">KCSE Results Summary</h3>
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="bg-gradient-to-br from-green-500 to-green-700 text-white p-5 rounded-xl">
+          <p class="text-sm opacity-90">Mean Grade</p>
+          <p id="kcse-mean-grade" class="text-4xl font-extrabold mt-1">-</p>
+        </div>
+        <div class="bg-gradient-to-br from-blue-500 to-blue-700 text-white p-5 rounded-xl">
+          <p class="text-sm opacity-90">Aggregate Points</p>
+          <p id="kcse-aggregate" class="text-4xl font-extrabold mt-1">-</p>
+        </div>
+        <div class="bg-gradient-to-br from-purple-500 to-purple-700 text-white p-5 rounded-xl">
+          <p class="text-sm opacity-90">Subjects Used</p>
+          <p id="kcse-used" class="text-4xl font-extrabold mt-1">-</p>
+        </div>
+        <div class="bg-gradient-to-br from-amber-500 to-amber-700 text-white p-5 rounded-xl">
+          <p class="text-sm opacity-90">Average Points</p>
+          <p id="kcse-avg" class="text-4xl font-extrabold mt-1">-</p>
+        </div>
+      </div>
+      <div id="kcse-breakdown" class="overflow-x-auto"></div>
+    </div>
+  </div>
+
+  <!-- ==================== CBC SECTION ==================== -->
+  <div id="cbc-section" class="hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
+      <div class="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <div>
+          <h2 class="text-2xl font-bold">CBC / CBE Grade Calculator</h2>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">8-level competency scale (EE1 → BE2) • Used in KPSEA, KJSEA & Senior School</p>
+        </div>
+        <div class="flex gap-2">
+          <button onclick="addCbcSubject()" class="bg-kenya-green hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition">
+            <i class="fas fa-plus mr-1"></i> Add Learning Area
+          </button>
+          <button onclick="clearCbc()" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 px-4 py-2 rounded-lg transition">
+            <i class="fas fa-trash mr-1"></i> Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="border-b dark:border-gray-700 text-sm text-gray-500">
+              <th class="pb-3 pr-4">Learning Area</th>
+              <th class="pb-3 pr-4">Marks (%)</th>
+              <th class="pb-3 pr-4">Level</th>
+              <th class="pb-3 pr-4">Points</th>
+              <th class="pb-3">Action</th>
+            </tr>
+          </thead>
+          <tbody id="cbc-subjects"></tbody>
+        </table>
+      </div>
+
+      <div class="mt-6 flex flex-wrap gap-3">
+        <button onclick="calculateCbc()" class="bg-kenya-red hover:bg-red-700 text-white px-8 py-3 rounded-xl font-bold text-lg shadow-lg transition">
+          <i class="fas fa-calculator mr-2"></i> Calculate Performance
+        </button>
+        <button onclick="loadSampleCbc()" class="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 px-6 py-3 rounded-xl transition">
+          Load Sample Data
+        </button>
+      </div>
+    </div>
+
+    <!-- CBC Results -->
+    <div id="cbc-results" class="hidden bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-8">
+      <h3 class="text-xl font-bold mb-4">CBC / CBE Performance Summary</h3>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div class="bg-gradient-to-br from-emerald-500 to-emerald-700 text-white p-5 rounded-xl">
+          <p class="text-sm opacity-90">Total Points</p>
+          <p id="cbc-total-points" class="text-4xl font-extrabold mt-1">-</p>
+        </div>
+        <div class="bg-gradient-to-br from-indigo-500 to-indigo-700 text-white p-5 rounded-xl">
+          <p class="text-sm opacity-90">Average Points</p>
+          <p id="cbc-avg-points" class="text-4xl font-extrabold mt-1">-</p>
+        </div>
+        <div class="bg-gradient-to-br from-rose-500 to-rose-700 text-white p-5 rounded-xl">
+          <p class="text-sm opacity-90">Overall Band</p>
+          <p id="cbc-overall-band" class="text-2xl font-extrabold mt-1">-</p>
+        </div>
+      </div>
+      <div id="cbc-breakdown" class="overflow-x-auto"></div>
+    </div>
+  </div>
+
+  <!-- Info Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 no-print">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+      <h3 class="font-bold text-lg mb-3 flex items-center gap-2"><i class="fas fa-info-circle text-kenya-green"></i> KCSE Grading Scale</h3>
+      <div class="text-sm space-y-1">
+        <p><span class="font-bold text-green-600">A</span> = 12 pts (≈80–100%) • <span class="font-bold">A-</span> = 11 • <span class="font-bold">B+</span> = 10</p>
+        <p><span class="font-bold">B</span> = 9 • <span class="font-bold">B-</span> = 8 • <span class="font-bold">C+</span> = 7</p>
+        <p><span class="font-bold">C</span> = 6 • <span class="font-bold">C-</span> = 5 • <span class="font-bold">D+</span> = 4</p>
+        <p><span class="font-bold">D</span> = 3 • <span class="font-bold">D-</span> = 2 • <span class="font-bold text-red-600">E</span> = 1</p>
+        <p class="mt-2 text-gray-500">Mean grade from best 7 subjects (Mathematics + one language are compulsory under current rules).</p>
+      </div>
+    </div>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg">
+      <h3 class="font-bold text-lg mb-3 flex items-center gap-2"><i class="fas fa-info-circle text-kenya-red"></i> CBC / CBE 8-Level Scale</h3>
+      <div class="text-sm space-y-1">
+        <p><span class="font-bold text-green-600">EE1</span> 90–100% (8 pts) • <span class="font-bold text-green-500">EE2</span> 75–89% (7 pts)</p>
+        <p><span class="font-bold text-blue-600">ME1</span> 58–74% (6 pts) • <span class="font-bold text-blue-500">ME2</span> 41–57% (5 pts)</p>
+        <p><span class="font-bold text-yellow-600">AE1</span> 31–40% (4 pts) • <span class="font-bold text-yellow-500">AE2</span> 21–30% (3 pts)</p>
+        <p><span class="font-bold text-orange-600">BE1</span> 11–20% (2 pts) • <span class="font-bold text-red-600">BE2</span> 1–10% (1 pt)</p>
+        <p class="mt-2 text-gray-500">No overall ranking is required under pure CBC philosophy, but total points help track progress.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-12 text-center text-sm text-gray-500 dark:text-gray-400 no-print">
+    <p>Built for Kenyan Students & Teachers • Supports both 8-4-4 (KCSE) and CBC/CBE systems</p>
+    <p class="mt-1">Grading scales are approximate based on publicly available KNEC guidelines (2025–2026). Always verify with official KNEC circulars.</p>
+  </footer>
+</div>
+
+<script>
+  // ========== THEME ==========
+  function toggleTheme() {
+    document.documentElement.classList.toggle('dark');
+    localStorage.setItem('theme', document.documentElement.classList.contains('dark') ? 'dark' : 'light');
+  }
+  if (localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+    document.documentElement.classList.add('dark');
+  }
+
+  // ========== TAB SWITCHING ==========
+  function switchTab(tab) {
+    document.getElementById('kcse-section').classList.toggle('hidden', tab !== 'kcse');
+    document.getElementById('cbc-section').classList.toggle('hidden', tab !== 'cbc');
+    document.getElementById('tab-kcse').className = tab === 'kcse'
+      ? 'tab-btn px-6 py-3 rounded-xl font-semibold bg-kenya-green text-white shadow-md'
+      : 'tab-btn px-6 py-3 rounded-xl font-semibold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200';
+    document.getElementById('tab-cbc').className = tab === 'cbc'
+      ? 'tab-btn px-6 py-3 rounded-xl font-semibold bg-kenya-green text-white shadow-md'
+      : 'tab-btn px-6 py-3 rounded-xl font-semibold bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200';
+  }
+
+  // ========== KCSE LOGIC ==========
+  const kcseGrades = [
+    { min: 80, grade: 'A', points: 12 },
+    { min: 75, grade: 'A-', points: 11 },
+    { min: 70, grade: 'B+', points: 10 },
+    { min: 65, grade: 'B', points: 9 },
+    { min: 60, grade: 'B-', points: 8 },
+    { min: 55, grade: 'C+', points: 7 },
+    { min: 50, grade: 'C', points: 6 },
+    { min: 45, grade: 'C-', points: 5 },
+    { min: 40, grade: 'D+', points: 4 },
+    { min: 35, grade: 'D', points: 3 },
+    { min: 30, grade: 'D-', points: 2 },
+    { min: 0,  grade: 'E', points: 1 }
+  ];
+
+  const defaultKcseSubjects = [
+    'English', 'Kiswahili', 'Mathematics', 'Biology', 'Chemistry',
+    'Physics', 'History & Government', 'Geography', 'CRE / IRE / HRE',
+    'Agriculture', 'Business Studies', 'Computer Studies'
+  ];
+
+  let kcseCount = 0;
+
+  function getKcseGrade(marks) {
+    marks = parseFloat(marks) || 0;
+    for (const g of kcseGrades) {
+      if (marks >= g.min) return g;
+    }
+    return kcseGrades[kcseGrades.length - 1];
+  }
+
+  function addKcseSubject(name = '', marks = '') {
+    kcseCount++;
+    const tbody = document.getElementById('kcse-subjects');
+    const row = document.createElement('tr');
+    row.id = `kcse-row-${kcseCount}`;
+    row.className = 'border-b dark:border-gray-700';
+    row.innerHTML = `
+      <td class="py-3 pr-4">
+        <select class="w-full px-3 py-2 rounded-lg border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" onchange="updateKcseRow(${kcseCount})">
+          <option value="">Select subject...</option>
+          ${defaultKcseSubjects.map(s => `<option value="${s}" ${s === name ? 'selected' : ''}>${s}</option>`).join('')}
+          <option value="Other">Other / Custom</option>
+        </select>
+        <input type="text" class="w-full mt-1 px-3 py-1 rounded border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm hidden" placeholder="Custom subject name" oninput="updateKcseRow(${kcseCount})">
+      </td>
+      <td class="py-3 pr-4">
+        <input type="number" min="0" max="100" step="0.1" value="${marks}" class="w-24 px-3 py-2 rounded-lg border dark:border-gray-600 bg-gray-50 dark:bg-gray-700" oninput="updateKcseRow(${kcseCount})">
+      </td>
+      <td class="py-3 pr-4"><span class="grade-badge px-3 py-1 rounded-full text-sm bg-gray-200 dark:bg-gray-600">-</span></td>
+      <td class="py-3 pr-4 font-bold">-</td>
+      <td class="py-3">
+        <button onclick="removeKcseRow(${kcseCount})" class="text-red-500 hover:text-red-700"><i class="fas fa-times"></i></button>
+      </td>
+    `;
+    tbody.appendChild(row);
+    if (name || marks) updateKcseRow(kcseCount);
+  }
+
+  function updateKcseRow(id) {
+    const row = document.getElementById(`kcse-row-${id}`);
+    if (!row) return;
+    const select = row.querySelector('select');
+    const customInput = row.querySelector('input[type="text"]');
+    const marksInput = row.querySelector('input[type="number"]');
+    const gradeSpan = row.querySelector('.grade-badge');
+    const pointsTd = row.querySelectorAll('td')[3];
+
+    if (select.value === 'Other') {
+      customInput.classList.remove('hidden');
+    } else {
+      customInput.classList.add('hidden');
+    }
+
+    const marks = parseFloat(marksInput.value);
+    if (!isNaN(marks) && marks >= 0 && marks <= 100) {
+      const g = getKcseGrade(marks);
+      gradeSpan.textContent = g.grade;
+      gradeSpan.className = `grade-badge px-3 py-1 rounded-full text-sm ${
+        g.points >= 10 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+        g.points >= 7 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+        g.points >= 4 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+      }`;
+      pointsTd.textContent = g.points;
+    } else {
+      gradeSpan.textContent = '-';
+      gradeSpan.className = 'grade-badge px-3 py-1 rounded-full text-sm bg-gray-200 dark:bg-gray-600';
+      pointsTd.textContent = '-';
+    }
+  }
+
+  function removeKcseRow(id) {
+    document.getElementById(`kcse-row-${id}`)?.remove();
+  }
+
+  function clearKcse() {
+    document.getElementById('kcse-subjects').innerHTML = '';
+    document.getElementById('kcse-results').classList.add('hidden');
+    kcseCount = 0;
+  }
+
+  function loadSampleKcse() {
+    clearKcse();
+    const sample = [
+      { name: 'English', marks: 78 },
+      { name: 'Kiswahili', marks: 82 },
+      { name: 'Mathematics', marks: 65 },
+      { name: 'Biology', marks: 71 },
+      { name: 'Chemistry', marks: 68 },
+      { name: 'Physics', marks: 55 },
+      { name: 'History & Government', marks: 74 },
+      { name: 'Geography', marks: 69 }
+    ];
+    sample.forEach(s => addKcseSubject(s.name, s.marks));
+  }
+
+  function calculateKcse() {
+    const rows = document.querySelectorAll('#kcse-subjects tr');
+    const subjects = [];
+
+    rows.forEach(row => {
+      const select = row.querySelector('select');
+      const custom = row.querySelector('input[type="text"]');
+      const marksInput = row.querySelector('input[type="number"]');
+      const name = select.value === 'Other' ? custom.value.trim() : select.value;
+      const marks = parseFloat(marksInput.value);
+      if (name && !isNaN(marks) && marks >= 0 && marks <= 100) {
+        const g = getKcseGrade(marks);
+        subjects.push({ name, marks, grade: g.grade, points: g.points });
+      }
+    });
+
+    if (subjects.length < 7) {
+      alert('Please enter at least 7 subjects for a valid KCSE mean grade calculation.');
+      return;
+    }
+
+    // Sort by points descending
+    subjects.sort((a, b) => b.points - a.points);
+
+    // Prefer Math + one language if present
+    const math = subjects.find(s => s.name.toLowerCase().includes('math'));
+    const lang = subjects.find(s => ['english', 'kiswahili', 'kenya sign language'].some(l => s.name.toLowerCase().includes(l)));
+
+    let selected = [];
+    if (math) selected.push(math);
+    if (lang && lang !== math) selected.push(lang);
+
+    // Fill remaining from best
+    for (const s of subjects) {
+      if (selected.length >= 7) break;
+      if (!selected.includes(s)) selected.push(s);
+    }
+
+    // If still less than 7 (rare), take top remaining
+    while (selected.length < 7 && subjects.length > selected.length) {
+      for (const s of subjects) {
+        if (!selected.includes(s)) {
+          selected.push(s);
+          break;
+        }
+      }
+    }
+
+    const totalPoints = selected.reduce((sum, s) => sum + s.points, 0);
+    const avg = totalPoints / selected.length;
+    const meanGrade = getKcseGrade(avg * 8.33).grade; // approximate mapping from average points
+
+    // Better mean grade mapping from average points
+    let meanLetter = 'E';
+    if (avg >= 11.5) meanLetter = 'A';
+    else if (avg >= 10.5) meanLetter = 'A-';
+    else if (avg >= 9.5) meanLetter = 'B+';
+    else if (avg >= 8.5) meanLetter = 'B';
+    else if (avg >= 7.5) meanLetter = 'B-';
+    else if (avg >= 6.5) meanLetter = 'C+';
+    else if (avg >= 5.5) meanLetter = 'C';
+    else if (avg >= 4.5) meanLetter = 'C-';
+    else if (avg >= 3.5) meanLetter = 'D+';
+    else if (avg >= 2.5) meanLetter = 'D';
+    else if (avg >= 1.5) meanLetter = 'D-';
+
+    document.getElementById('kcse-mean-grade').textContent = meanLetter;
+    document.getElementById('kcse-aggregate').textContent = totalPoints;
+    document.getElementById('kcse-used').textContent = selected.length;
+    document.getElementById('kcse-avg').textContent = avg.toFixed(2);
+
+    let html = `
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b dark:border-gray-700">
+            <th class="py-2 text-left">Subject (Best 7)</th>
+            <th class="py-2 text-left">Marks</th>
+            <th class="py-2 text-left">Grade</th>
+            <th class="py-2 text-left">Points</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    selected.forEach(s => {
+      html += `<tr class="border-b dark:border-gray-700">
+        <td class="py-2">${s.name}</td>
+        <td class="py-2">${s.marks}%</td>
+        <td class="py-2 font-bold">${s.grade}</td>
+        <td class="py-2 font-bold">${s.points}</td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+    document.getElementById('kcse-breakdown').innerHTML = html;
+    document.getElementById('kcse-results').classList.remove('hidden');
+
+    // Save to localStorage
+    localStorage.setItem('lastKcse', JSON.stringify({ subjects, selected, totalPoints, avg, meanLetter }));
+  }
+
+  // ========== CBC LOGIC ==========
+  const cbcLevels = [
+    { min: 90, level: 'EE1', points: 8, label: 'Exceeding Expectations 1' },
+    { min: 75, level: 'EE2', points: 7, label: 'Exceeding Expectations 2' },
+    { min: 58, level: 'ME1', points: 6, label: 'Meeting Expectations 1' },
+    { min: 41, level: 'ME2', points: 5, label: 'Meeting Expectations 2' },
+    { min: 31, level: 'AE1', points: 4, label: 'Approaching Expectations 1' },
+    { min: 21, level: 'AE2', points: 3, label: 'Approaching Expectations 2' },
+    { min: 11, level: 'BE1', points: 2, label: 'Below Expectations 1' },
+    { min: 0,  level: 'BE2', points: 1, label: 'Below Expectations 2' }
+  ];
+
+  const defaultCbcSubjects = [
+    'English', 'Kiswahili', 'Mathematics', 'Science & Technology',
+    'Social Studies', 'Creative Arts', 'Agriculture & Nutrition',
+    'Religious Education', 'Integrated Science', 'Pre-Technical Studies',
+    'Computer Science', 'Business Studies'
+  ];
+
+  let cbcCount = 0;
+
+  function getCbcLevel(marks) {
+    marks = parseFloat(marks) || 0;
+    for (const l of cbcLevels) {
+      if (marks >= l.min) return l;
+    }
+    return cbcLevels[cbcLevels.length - 1];
+  }
+
+  function addCbcSubject(name = '', marks = '') {
+    cbcCount++;
+    const tbody = document.getElementById('cbc-subjects');
+    const row = document.createElement('tr');
+    row.id = `cbc-row-${cbcCount}`;
+    row.className = 'border-b dark:border-gray-700';
+    row.innerHTML = `
+      <td class="py-3 pr-4">
+        <select class="w-full px-3 py-2 rounded-lg border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm" onchange="updateCbcRow(${cbcCount})">
+          <option value="">Select learning area...</option>
+          ${defaultCbcSubjects.map(s => `<option value="${s}" ${s === name ? 'selected' : ''}>${s}</option>`).join('')}
+          <option value="Other">Other / Custom</option>
+        </select>
+        <input type="text" class="w-full mt-1 px-3 py-1 rounded border dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-sm hidden" placeholder="Custom name" oninput="updateCbcRow(${cbcCount})">
+      </td>
+      <td class="py-3 pr-4">
+        <input type="number" min="0" max="100" step="0.1" value="${marks}" class="w-24 px-3 py-2 rounded-lg border dark:border-gray-600 bg-gray-50 dark:bg-gray-700" oninput="updateCbcRow(${cbcCount})">
+      </td>
+      <td class="py-3 pr-4"><span class="grade-badge px-3 py-1 rounded-full text-sm bg-gray-200 dark:bg-gray-600">-</span></td>
+      <td class="py-3 pr-4 font-bold">-</td>
+      <td class="py-3">
+        <button onclick="removeCbcRow(${cbcCount})" class="text-red-500 hover:text-red-700"><i class="fas fa-times"></i></button>
+      </td>
+    `;
+    tbody.appendChild(row);
+    if (name || marks) updateCbcRow(cbcCount);
+  }
+
+  function updateCbcRow(id) {
+    const row = document.getElementById(`cbc-row-${id}`);
+    if (!row) return;
+    const select = row.querySelector('select');
+    const customInput = row.querySelector('input[type="text"]');
+    const marksInput = row.querySelector('input[type="number"]');
+    const levelSpan = row.querySelector('.grade-badge');
+    const pointsTd = row.querySelectorAll('td')[3];
+
+    if (select.value === 'Other') customInput.classList.remove('hidden');
+    else customInput.classList.add('hidden');
+
+    const marks = parseFloat(marksInput.value);
+    if (!isNaN(marks) && marks >= 0 && marks <= 100) {
+      const l = getCbcLevel(marks);
+      levelSpan.textContent = l.level;
+      levelSpan.className = `grade-badge px-3 py-1 rounded-full text-sm ${
+        l.points >= 7 ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' :
+        l.points >= 5 ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' :
+        l.points >= 3 ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' :
+        'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+      }`;
+      pointsTd.textContent = l.points;
+    } else {
+      levelSpan.textContent = '-';
+      levelSpan.className = 'grade-badge px-3 py-1 rounded-full text-sm bg-gray-200 dark:bg-gray-600';
+      pointsTd.textContent = '-';
+    }
+  }
+
+  function removeCbcRow(id) {
+    document.getElementById(`cbc-row-${id}`)?.remove();
+  }
+
+  function clearCbc() {
+    document.getElementById('cbc-subjects').innerHTML = '';
+    document.getElementById('cbc-results').classList.add('hidden');
+    cbcCount = 0;
+  }
+
+  function loadSampleCbc() {
+    clearCbc();
+    const sample = [
+      { name: 'English', marks: 88 },
+      { name: 'Kiswahili', marks: 76 },
+      { name: 'Mathematics', marks: 62 },
+      { name: 'Science & Technology', marks: 71 },
+      { name: 'Social Studies', marks: 55 },
+      { name: 'Creative Arts', marks: 92 },
+      { name: 'Agriculture & Nutrition', marks: 48 },
+      { name: 'Religious Education', marks: 67 }
+    ];
+    sample.forEach(s => addCbcSubject(s.name, s.marks));
+  }
+
+  function calculateCbc() {
+    const rows = document.querySelectorAll('#cbc-subjects tr');
+    const subjects = [];
+
+    rows.forEach(row => {
+      const select = row.querySelector('select');
+      const custom = row.querySelector('input[type="text"]');
+      const marksInput = row.querySelector('input[type="number"]');
+      const name = select.value === 'Other' ? custom.value.trim() : select.value;
+      const marks = parseFloat(marksInput.value);
+      if (name && !isNaN(marks) && marks >= 0 && marks <= 100) {
+        const l = getCbcLevel(marks);
+        subjects.push({ name, marks, level: l.level, points: l.points, label: l.label });
+      }
+    });
+
+    if (subjects.length === 0) {
+      alert('Please add at least one learning area.');
+      return;
+    }
+
+    const totalPoints = subjects.reduce((sum, s) => sum + s.points, 0);
+    const avg = totalPoints / subjects.length;
+
+    let overall = 'Needs Support';
+    if (avg >= 7) overall = 'Outstanding (Mostly EE)';
+    else if (avg >= 5) overall = 'Strong (Mostly ME)';
+    else if (avg >= 3.5) overall = 'Average (Mix of ME/AE)';
+    else overall = 'Needs Significant Support';
+
+    document.getElementById('cbc-total-points').textContent = totalPoints + ' / ' + (subjects.length * 8);
+    document.getElementById('cbc-avg-points').textContent = avg.toFixed(2);
+    document.getElementById('cbc-overall-band').textContent = overall;
+
+    let html = `
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="border-b dark:border-gray-700">
+            <th class="py-2 text-left">Learning Area</th>
+            <th class="py-2 text-left">Marks</th>
+            <th class="py-2 text-left">Level</th>
+            <th class="py-2 text-left">Points</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    subjects.forEach(s => {
+      html += `<tr class="border-b dark:border-gray-700">
+        <td class="py-2">${s.name}</td>
+        <td class="py-2">${s.marks}%</td>
+        <td class="py-2 font-bold">${s.level}</td>
+        <td class="py-2 font-bold">${s.points}</td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+    document.getElementById('cbc-breakdown').innerHTML = html;
+    document.getElementById('cbc-results').classList.remove('hidden');
+
+    localStorage.setItem('lastCbc', JSON.stringify({ subjects, totalPoints, avg, overall }));
+  }
+
+  // Initialize with a few empty rows
+  window.onload = () => {
+    for (let i = 0; i < 7; i++) addKcseSubject();
+    for (let i = 0; i < 6; i++) addCbcSubject();
+  };
+</script>
+</body>
+</html>
